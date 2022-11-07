@@ -1,0 +1,38 @@
+{
+  "name": "pca-mission-manager",
+  "version": "1.0.0",
+  "description": "Management system for Arma 3 communities",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "uvu tests",
+    "lint": "eslint --ignore-path .gitignore .",
+    "lint:formatting": "prettier --list-different \"src/**/*.js\"",
+    "format": "prettier --write \"src/**/*.js\""
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@discordjs/rest": "^1.1.0",
+    "@fastify/auth": "^4.0.0",
+    "@fastify/bearer-auth": "^8.0.1",
+    "@fastify/oauth2": "^6.0.0",
+    "@fastify/postgres": "^5.1.0",
+    "convict": "^6.2.3",
+    "date-fns": "^2.29.3",
+    "discord-api-types": "^0.37.10",
+    "fastify": "^4.5.3",
+    "nanoid": "^4.0.0",
+    "pg": "^8.8.0",
+    "postgres": "^3.2.4",
+    "toml": "^3.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.23.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "prettier": "^2.7.1",
+    "uvu": "^0.5.6"
+  }
+}

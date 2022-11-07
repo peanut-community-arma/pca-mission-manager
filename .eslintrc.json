@@ -1,0 +1,31 @@
+{
+  "extends": ["airbnb-base", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": 13
+  },
+  "rules": {
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages"
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "src/**/*.test.js"
+      ],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
+}

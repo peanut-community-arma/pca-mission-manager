@@ -1,0 +1,8 @@
+.env
+coverage/
+config.development.toml
+
+/node_modules
+
+# VSCode
+.vscode/*

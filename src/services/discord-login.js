@@ -44,11 +44,14 @@ export default async function doLogin(oauthToken) {
     throw new Error("User doesn't belong to role");
   }
 
+  const userToken = generateToken();
   await insertUserIntoDatabase({
     id: user.id,
     accessToken: oauthToken.access_token,
     tokenExpiresAt: addSeconds(new Date(), oauthToken.expires_in),
     refreshToken: oauthToken.refresh_token,
-    userToken: generateToken(),
+    userToken,
   });
+
+  return { id: user.id, userToken };
 }

@@ -18,10 +18,26 @@ export default function registerLoginRoutes(server) {
     callbackUri: "http://localhost:3000/login/callback",
   });
 
-  server.get("/login/callback", async function loginCallbackHandler(req, _res) {
-    const { token } =
-      await this.discordOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
+  server.get(
+    "/login/callback",
+    {
+      schema: {
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              userToken: { type: "string" },
+            },
+          },
+        },
+      },
+    },
+    async function loginCallbackHandler(req, _res) {
+      const { token } =
+        await this.discordOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
 
-    return doLogin(token);
-  });
+      return doLogin(token);
+    }
+  );
 }

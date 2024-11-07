@@ -17,7 +17,7 @@ export async function joinRaffle(raffleId, participant) {
 
   try {
     await sql`INSERT INTO raffle_entries (raffle_id, participant) SELECT ${sql(
-      entry
+      entry,
     )} WHERE EXISTS (SELECT TRUE FROM raffles WHERE id = ${raffleId} AND open = TRUE)`;
   } catch (e) {
     if (e.code === "23505") {

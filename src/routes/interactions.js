@@ -14,15 +14,15 @@ import {
 
 const ApplicationCommands = Object.freeze({
   Raffle: "raffle",
-  OpenRaffles: "open-raffles"
-})
+  OpenRaffles: "open-raffles",
+});
 
 const MessageComponentCommands = Object.freeze({
   JoinRaffle: "joinRaffle",
   LeaveRaffle: "leaveRaffle",
   CloseRaffle: "closeRaffle",
   RerollRaffle: "rerollRaffle",
-})
+});
 
 export default function registerInteractionsRoutes(server) {
   server.route({
@@ -34,8 +34,7 @@ export default function registerInteractionsRoutes(server) {
 
       switch (type) {
         case InteractionType.Ping: {
-          res.send({ type: InteractionResponseType.Pong });
-          break;
+          return res.send({ type: InteractionResponseType.Pong });
         }
         case InteractionType.ApplicationCommand: {
           const { name } = data;
@@ -49,12 +48,7 @@ export default function registerInteractionsRoutes(server) {
               throw new Error();
             }
 
-            const r = await createRaffle(
-              creatorId,
-              title,
-              drawAmount,
-              token
-            );
+            const r = await createRaffle(creatorId, title, drawAmount, token);
             return res.send(r);
           }
 

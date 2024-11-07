@@ -66,8 +66,6 @@ const config = convict({
       env: "DISCORD_ADMIN_ROLE",
     },
   },
-    },
-  },
 });
 
 const env = config.get("env");

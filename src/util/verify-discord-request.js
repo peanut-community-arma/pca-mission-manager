@@ -5,11 +5,11 @@ export default async function verifyDiscordRequest(request, reply) {
   const signature = request.headers["x-signature-ed25519"] ?? "";
   const timestamp = request.headers["x-signature-timestamp"] ?? "";
 
-  const isValid = verifyKey(
+  const isValid = await verifyKey(
     request.rawBody,
     signature,
     timestamp,
-    config.get("discord.publicKey")
+    config.get("discord.publicKey"),
   );
 
   if (!isValid) {

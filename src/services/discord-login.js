@@ -14,7 +14,7 @@ async function insertUserIntoDatabase(user) {
       "accessToken",
       "tokenExpiresAt",
       "refreshToken",
-      "userToken"
+      "userToken",
     )}
     ON CONFLICT (id) DO UPDATE SET
         access_token = EXCLUDED.access_token,

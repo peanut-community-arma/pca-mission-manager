@@ -1,4 +1,4 @@
-import {createMission} from "../services/mission.js";
+import { createMission } from "../services/mission.js";
 
 export default function registerMissionRoutes(server) {
   server.route({
@@ -8,7 +8,13 @@ export default function registerMissionRoutes(server) {
     schema: {
       body: {
         type: "object",
-        required: ["name", "missionType", "description", "terrain", "firstRevision"],
+        required: [
+          "name",
+          "missionType",
+          "description",
+          "terrain",
+          "firstRevision",
+        ],
         properties: {
           name: {
             type: "string",
@@ -32,7 +38,6 @@ export default function registerMissionRoutes(server) {
               maxSlots: {
                 type: "number",
               },
-
             },
           },
         },

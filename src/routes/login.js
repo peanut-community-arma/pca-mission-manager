@@ -22,6 +22,6 @@ export default function registerLoginRoutes(server) {
         await this.discordOAuth2.getAccessTokenFromAuthorizationCodeFlow(req);
 
       return doLogin(token);
-    }
+    },
   );
 }

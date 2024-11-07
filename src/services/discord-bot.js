@@ -10,7 +10,7 @@ import {
 import config from "../config.js";
 
 const discordClient = new REST({ version: "10", authPrefix: "Bot" }).setToken(
-  config.get("discord.token")
+  config.get("discord.token"),
 );
 
 export function getGuildMember(guildId, userId) {
@@ -20,7 +20,7 @@ export function getGuildMember(guildId, userId) {
 export function ensureBotCommands() {
   const applicationGuildCommandsRoute = Routes.applicationGuildCommands(
     config.get("discord.clientId"),
-    config.get("discord.requiredGuild")
+    config.get("discord.requiredGuild"),
   );
 
   return Promise.all([
@@ -60,18 +60,18 @@ export function alterWebhookMessage(
   webhookId,
   token,
   messageId,
-  messageParams
+  messageParams,
 ) {
   return discordClient.patch(
     Routes.webhookMessage(webhookId, token, messageId),
     {
       body: messageParams,
-    }
+    },
   );
 }
 
 export async function deleteWebhookMessage(webhookId, token, messageId) {
   return discordClient.delete(
-    Routes.webhookMessage(webhookId, token, messageId)
+    Routes.webhookMessage(webhookId, token, messageId),
   );
 }

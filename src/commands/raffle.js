@@ -35,12 +35,7 @@ function convertIdListToMentions(idList) {
   return mentions.join(", ");
 }
 
-export async function createRaffle(
-  creatorId,
-  title,
-  drawAmount,
-  token
-) {
+export async function createRaffle(creatorId, title, drawAmount, token) {
   const [{ id }] = await createDBRaffle(creatorId, title, drawAmount, token);
   const mention = convertIdToMention(creatorId);
 
@@ -159,7 +154,7 @@ export async function closeRaffle(raffleId, userId, roles) {
     }),
 
     selectWinners(raffleId).then((results) =>
-      results.map((winner) => winner.participant)
+      results.map((winner) => winner.participant),
     ),
   ]);
 
@@ -200,7 +195,7 @@ export async function rerollRaffle(raffleId, userId, roles) {
   }
 
   const winnerIds = (await selectWinners(raffleId)).map(
-    (winner) => winner.participant
+    (winner) => winner.participant,
   );
 
   const winners = convertIdListToMentions(winnerIds);

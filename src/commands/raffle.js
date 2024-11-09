@@ -197,13 +197,18 @@ export function rerollRaffle(raffleId, userId, roles) {
 export function listRaffles() {
   const raffles = listDBRaffles();
 
-  const content = raffles
-    .map((raffle) => {
-      const participants = convertIdListToMentions(raffle.participants ?? []);
+  const content =
+    raffles.length > 0
+      ? raffles
+          .map((raffle) => {
+            const participants = convertIdListToMentions(
+              raffle.participants ?? [],
+            );
 
-      return `Raffle ${raffle.title}, participants: ${participants}`;
-    })
-    .join("\n");
+            return `Raffle ${raffle.title}, participants: ${participants}`;
+          })
+          .join("\n")
+      : "No open raffles.";
 
   return {
     type: InteractionResponseType.ChannelMessageWithSource,

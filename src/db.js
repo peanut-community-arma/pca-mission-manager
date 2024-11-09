@@ -1,12 +1,7 @@
-import postgres from "postgres";
+import Database from "better-sqlite3";
 
-const sql = postgres({
-  transform: {
-    column: {
-      to: postgres.fromCamel,
-      from: postgres.toCamel,
-    },
-  },
-});
+const sql = new Database("pca-mm.sqlite3");
+
+sql.defaultSafeIntegers(true);
 
 export default sql;

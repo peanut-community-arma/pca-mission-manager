@@ -16,10 +16,7 @@ import {
   selectWinners,
   getRaffle,
 } from "../services/raffle.js";
-import {
-  alterWebhookMessage,
-  deleteWebhookMessage,
-} from "../services/discord-bot.js";
+import { alterWebhookMessage } from "../services/discord-bot.js";
 import config from "../config.js";
 
 function isAdmin(roles) {
@@ -35,8 +32,8 @@ function convertIdListToMentions(idList) {
   return mentions.join(", ");
 }
 
-export async function createRaffle(creatorId, title, drawAmount, token) {
-  const [{ id }] = await createDBRaffle(creatorId, title, drawAmount, token);
+export function createRaffle(creatorId, title, drawAmount, token) {
+  const id = createDBRaffle(creatorId, title, drawAmount, token);
   const mention = convertIdToMention(creatorId);
 
   return {
@@ -66,8 +63,8 @@ export async function createRaffle(creatorId, title, drawAmount, token) {
   };
 }
 
-export async function joinRaffle(raffleId, participantName, participantId) {
-  const result = await joinDBRaffle(raffleId, participantId);
+export function joinRaffle(raffleId, participantName, participantId) {
+  const result = joinDBRaffle(raffleId, participantId);
 
   if (result === JoinRaffleResult.ALREADY_JOINED) {
     return {
@@ -101,13 +98,7 @@ export async function joinRaffle(raffleId, participantName, participantId) {
   };
 }
 
-export async function leaveRaffle({
-  raffleId,
-  participantId,
-  roles,
-  attemptId,
-  messageId,
-}) {
+export function leaveRaffle({ raffleId, participantId, roles, attemptId }) {
   if (!isAdmin(roles) && attemptId !== participantId) {
     return {
       type: InteractionResponseType.ChannelMessageWithSource,
@@ -118,24 +109,20 @@ export async function leaveRaffle({
     };
   }
 
-  const [_, { token }] = await Promise.all([
-    leaveDBRaffle(raffleId, participantId),
-    getRaffle(raffleId),
-  ]);
-
-  await deleteWebhookMessage(config.get("discord.clientId"), token, messageId);
+  leaveDBRaffle(raffleId, participantId);
 
   return {
     type: InteractionResponseType.UpdateMessage,
     data: {
       content: `You've left the raffle!`,
+      components: [],
       flags: MessageFlags.Ephemeral,
     },
   };
 }
 
 export async function closeRaffle(raffleId, userId, roles) {
-  const { result, title, token } = await closeDBRaffle(raffleId, userId, roles);
+  const { result, title, token } = closeDBRaffle(raffleId, userId, roles);
 
   if (result === CloseRaffleResult.NOT_AUTHORIZED) {
     return {
@@ -147,18 +134,19 @@ export async function closeRaffle(raffleId, userId, roles) {
     };
   }
 
-  const [_, winnerIds] = await Promise.all([
-    alterWebhookMessage(config.get("discord.clientId"), token, "@original", {
+  const winners = convertIdListToMentions(
+    selectWinners(raffleId).map((winner) => winner.participant),
+  );
+
+  await alterWebhookMessage(
+    config.get("discord.clientId"),
+    token,
+    "@original",
+    {
       content: `Raffle for ${title} closed!`,
       components: [],
-    }),
-
-    selectWinners(raffleId).then((results) =>
-      results.map((winner) => winner.participant),
-    ),
-  ]);
-
-  const winners = convertIdListToMentions(winnerIds);
+    },
+  );
 
   return {
     type: InteractionResponseType.ChannelMessageWithSource,
@@ -181,8 +169,8 @@ export async function closeRaffle(raffleId, userId, roles) {
   };
 }
 
-export async function rerollRaffle(raffleId, userId, roles) {
-  const { creator, title } = await getRaffle(raffleId);
+export function rerollRaffle(raffleId, userId, roles) {
+  const { creator, title } = getRaffle(raffleId);
 
   if (!isAdmin(roles) && userId !== creator) {
     return {
@@ -194,9 +182,7 @@ export async function rerollRaffle(raffleId, userId, roles) {
     };
   }
 
-  const winnerIds = (await selectWinners(raffleId)).map(
-    (winner) => winner.participant,
-  );
+  const winnerIds = selectWinners(raffleId).map((winner) => winner.participant);
 
   const winners = convertIdListToMentions(winnerIds);
 
@@ -208,12 +194,12 @@ export async function rerollRaffle(raffleId, userId, roles) {
   };
 }
 
-export async function listRaffles() {
-  const raffles = await listDBRaffles();
+export function listRaffles() {
+  const raffles = listDBRaffles();
 
   const content = raffles
     .map((raffle) => {
-      const participants = convertIdListToMentions(raffle.participants);
+      const participants = convertIdListToMentions(raffle.participants ?? []);
 
       return `Raffle ${raffle.title}, participants: ${participants}`;
     })

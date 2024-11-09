@@ -19,6 +19,7 @@
     "@fastify/auth": "^5",
     "@fastify/bearer-auth": "^10",
     "@fastify/oauth2": "^8",
+    "better-sqlite3": "^11.5.0",
     "convict": "^6.2.3",
     "date-fns": "^4",
     "discord-api-types": "^0.37.104",
@@ -26,8 +27,6 @@
     "fastify": "^5",
     "fastify-raw-body": "^5",
     "nanoid": "^5",
-    "pg": "^8",
-    "postgres": "^3",
     "raw-body": "^3",
     "toml": "^3.0.0"
   },

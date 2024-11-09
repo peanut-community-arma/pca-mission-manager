@@ -1,10 +1,12 @@
 import sql from "../db.js";
 import config from "../config.js";
 
-export function createRaffle(creatorId, title, drawAmount, token) {
-  const raffle = { creator: creatorId, title, drawAmount, token };
+const createStmt = sql.prepare(
+  "INSERT INTO raffles (creator, title, draw_amount, token) VALUES (?, ?, ?, ?)",
+);
 
-  return sql`INSERT INTO raffles ${sql(raffle)} RETURNING id;`;
+export function createRaffle(creatorId, title, drawAmount, token) {
+  return createStmt.run(creatorId, title, drawAmount, token).lastInsertRowid;
 }
 
 export const JoinRaffleResult = Object.freeze({
@@ -12,26 +14,30 @@ export const JoinRaffleResult = Object.freeze({
   ALREADY_JOINED: "ALREADY_JOINED",
 });
 
-export async function joinRaffle(raffleId, participant) {
-  const entry = { raffleId, participant };
+const joinStmt = sql.prepare(
+  "INSERT INTO raffle_entries (raffle_id, participant) SELECT ?, ? WHERE EXISTS (SELECT TRUE FROM raffles WHERE id = ? AND open = TRUE)",
+);
 
+export function joinRaffle(raffleId, participant) {
   try {
-    await sql`INSERT INTO raffle_entries (raffle_id, participant) SELECT ${sql(
-      entry,
-    )} WHERE EXISTS (SELECT TRUE FROM raffles WHERE id = ${raffleId} AND open = TRUE)`;
+    joinStmt.run(raffleId, participant, raffleId);
   } catch (e) {
-    if (e.code === "23505") {
-      // unique violation
+    if (e.code === "SQLITE_CONSTRAINT_PRIMARYKEY") {
       return JoinRaffleResult.ALREADY_JOINED;
     }
+
     throw e;
   }
 
   return JoinRaffleResult.JOINED;
 }
 
-export async function leaveRaffle(raffleId, participant) {
-  return sql`DELETE FROM raffle_entries WHERE raffle_id = ${raffleId} and participant = ${participant}`;
+const leaveStmt = sql.prepare(
+  "DELETE FROM raffle_entries WHERE raffle_id = ? AND participant = ?",
+);
+
+export function leaveRaffle(raffleId, participant) {
+  leaveStmt.run(raffleId, participant);
 }
 
 export const CloseRaffleResult = Object.freeze({
@@ -39,48 +45,59 @@ export const CloseRaffleResult = Object.freeze({
   NOT_AUTHORIZED: "NOT_AUTHORIZED",
 });
 
-export async function closeRaffle(raffleId, userId, roles) {
+const adminCloseStmt = sql.prepare(
+  "UPDATE raffles SET open = FALSE WHERE id = ? RETURNING title, token;",
+);
+
+const closeStmt = sql.prepare(
+  "UPDATE raffles SET open = FALSE WHERE id = ? AND creator = ? RETURNING title, token;",
+);
+
+export function closeRaffle(raffleId, userId, roles) {
   const isAdmin = roles.includes(config.get("discord.adminRole"));
 
   if (isAdmin) {
     // just close the raffle, ignore the original creator.
-    const [{ token, title }] =
-      await sql`UPDATE raffles SET open = FALSE WHERE id = ${raffleId} RETURNING title, token;`;
+    const { token, title } = adminCloseStmt.get(raffleId);
 
     return { result: CloseRaffleResult.CLOSED, token, title };
   }
 
-  const result =
-    await sql`UPDATE raffles SET open = FALSE WHERE id = ${raffleId} AND creator = ${userId} RETURNING title, token;`;
+  const result = closeStmt.get(raffleId, userId);
 
-  return result.count === 1
+  return result !== undefined
     ? {
         result: CloseRaffleResult.CLOSED,
-        token: result[0].token,
-        title: result[0].title,
+        token: result.token,
+        title: result.title,
       }
     : { result: CloseRaffleResult.NOT_AUTHORIZED };
 }
 
-export async function getRaffle(raffleId) {
-  const [firstRow] =
-    await sql`SELECT creator, title, token FROM raffles WHERE id = ${raffleId}`;
+const getStmt = sql.prepare(
+  "SELECT creator, title, token FROM raffles WHERE id = ?",
+);
 
-  return firstRow;
+export function getRaffle(raffleId) {
+  return getStmt.get(raffleId);
 }
 
-export async function selectWinners(raffleId) {
-  return sql`SELECT participant
-             FROM raffle_entries
-             WHERE raffle_id = ${raffleId}
-             ORDER BY random()
-             LIMIT (SELECT draw_amount FROM raffles WHERE id = ${raffleId})`;
+const winnersStmt = sql.prepare(
+  "SELECT participant FROM raffle_entries WHERE raffle_id = ? ORDER BY random() LIMIT (SELECT draw_amount FROM raffles WHERE id = ?);",
+);
+
+export function selectWinners(raffleId) {
+  return winnersStmt.all(raffleId, raffleId);
 }
 
-export async function listRaffles() {
-  return sql`SELECT id, title, array_remove(array_agg(participant), NULL) as participants
-             FROM raffles
-                    LEFT JOIN raffle_entries ON raffles.id = raffle_entries.raffle_id
-             WHERE open IS TRUE
-             GROUP BY id`;
+const listRafflesStmt = sql.prepare(String.raw`
+SELECT id, title, group_concat(participant) as participants
+FROM raffles
+  LEFT JOIN raffle_entries ON raffles.id = raffle_entries.raffle_id
+WHERE open IS TRUE
+GROUP BY id
+`);
+
+export function listRaffles() {
+  return listRafflesStmt.all();
 }

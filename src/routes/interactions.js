@@ -88,7 +88,6 @@ export default function registerInteractionsRoutes(server) {
                 participantId,
                 roles,
                 attemptId,
-                messageId: message.id,
               });
 
               return res.send(r);
